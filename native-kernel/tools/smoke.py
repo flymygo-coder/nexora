@@ -2,7 +2,7 @@
 """Boot ISO in QEMU, verify serial markers, capture a framebuffer screenshot."""
 from pathlib import Path
 import socket, subprocess, time
-from PIL import Image
+from PIL import Image, ImageChops
 root=Path(__file__).resolve().parent.parent
 build=root/'build'
 iso=build/'Nexora_Kernel_0.1.iso'
@@ -35,6 +35,27 @@ try:
     if len(set(image.resize((48,32)).getdata()))<15:raise RuntimeError('Framebuffer appears blank')
     image.save(png)
     print('Framebuffer screenshot:',png,image.size,flush=True)
+    with socket.socket(socket.AF_UNIX,socket.SOCK_STREAM) as sock:
+        sock.settimeout(6);sock.connect(str(monitor))
+        sock.sendall(b'sendkey f2\n')
+        time.sleep(1)
+        sock.sendall(f'screendump {build / "screen_f2.ppm"}\n'.encode())
+        time.sleep(1)
+    second=Image.open(build/'screen_f2.ppm').convert('RGB')
+    if ImageChops.difference(image,second).getbbox() is None:
+        raise RuntimeError('F2 navigation did not update screen')
+    second.save(build/'Nexora_Kernel_F2_Memory.png')
+    with socket.socket(socket.AF_UNIX,socket.SOCK_STREAM) as sock:
+        sock.settimeout(6);sock.connect(str(monitor))
+        sock.sendall(b'sendkey t\n')
+        time.sleep(1)
+        sock.sendall(f'screendump {build / "screen_light.ppm"}\n'.encode())
+        time.sleep(1)
+    light=Image.open(build/'screen_light.ppm').convert('RGB')
+    if light.getpixel((0,0))==second.getpixel((0,0)):
+        raise RuntimeError('Theme switch did not update background')
+    light.save(build/'Nexora_Kernel_Light_Theme.png')
+    print('F2 navigation and theme switch OK',flush=True)
 finally:
     p.terminate()
     try:p.wait(timeout=5)

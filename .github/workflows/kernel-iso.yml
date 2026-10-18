@@ -1,0 +1,40 @@
+name: Nexora собственное ядро — ISO + QEMU
+on:
+  push:
+    paths:
+      - 'native-kernel/**'
+      - '.github/workflows/kernel-iso.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  kernel:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Установить инструменты компиляции и эмулятор
+        run: |
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y gcc make binutils grub-common grub2-common grub-pc-bin xorriso mtools qemu-system-x86 python3-pil fonts-dejavu-core
+      - name: Компиляция собственного ядра и создание ISO
+        run: make -C native-kernel iso
+      - name: Проверка GRUB и загрузки ядра в QEMU
+        run: |
+          grub-file --is-x86-multiboot2 native-kernel/build/nexora.elf
+          python3 native-kernel/tools/smoke.py
+      - name: SHA-256
+        run: |
+          cd native-kernel/build
+          sha256sum Nexora_Kernel_0.1.iso > SHA256SUMS.txt
+      - name: Опубликовать ISO, скриншот и журнал загрузки
+        uses: actions/upload-artifact@v4
+        with:
+          name: Nexora-Kernel-Own-Kernel-ISO
+          path: |
+            native-kernel/build/Nexora_Kernel_0.1.iso
+            native-kernel/build/SHA256SUMS.txt
+            native-kernel/build/Nexora_Kernel_QEMU.png
+            native-kernel/build/serial.log
+          if-no-files-found: error
+          retention-days: 30

@@ -35,6 +35,8 @@ jobs:
             native-kernel/build/Nexora_Kernel_0.1.iso
             native-kernel/build/SHA256SUMS.txt
             native-kernel/build/Nexora_Kernel_QEMU.png
+            native-kernel/build/Nexora_Kernel_F2_Memory.png
+            native-kernel/build/Nexora_Kernel_Light_Theme.png
             native-kernel/build/serial.log
           if-no-files-found: error
           retention-days: 30

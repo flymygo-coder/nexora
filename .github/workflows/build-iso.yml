@@ -1,0 +1,39 @@
+name: Сборка установочного ISO Nexora OS
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/**'
+      - 'build/**'
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - name: Проверка скрипта
+        run: bash -n build/build-iso.sh
+      - name: Сборка Live ISO Debian 13
+        run: |
+          docker run --rm --privileged -e GITHUB_WORKSPACE=/source -v "$PWD:/source" -w /source debian:trixie bash -euc '
+            apt-get update
+            DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends live-build debootstrap xorriso squashfs-tools isolinux syslinux-common grub-efi-amd64-bin grub-pc-bin mtools ca-certificates
+            WORK_DIR=/tmp/nexora-build bash build/build-iso.sh
+          '
+      - name: Проверка ISO
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xorriso
+          test -s dist/Nexora_OS_Installer_amd64.iso
+          (cd dist && sha256sum -c SHA256SUMS.txt)
+          xorriso -indev dist/Nexora_OS_Installer_amd64.iso -find /live -type f -print | tee /tmp/nexora-live-files.txt
+          grep -F filesystem.squashfs /tmp/nexora-live-files.txt
+      - name: Опубликовать образ
+        uses: actions/upload-artifact@v4
+        with:
+          name: Nexora-OS-Installer-ISO
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 7

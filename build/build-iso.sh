@@ -38,7 +38,8 @@ fonts-noto-core
 fonts-dejavu-core
 ca-certificates
 sudo
-policykit-1
+polkitd
+pkexec
 calamares-settings-debian
 cryptsetup
 rsync

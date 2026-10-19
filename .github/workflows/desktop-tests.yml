@@ -22,6 +22,7 @@ jobs:
         run: |
           python3 tests/check-components.py
           bash -n desktop/nexora-update
+          bash -n desktop/nexora-win-exe
       - name: Запуск интерфейса, темы и скриншот
         run: xvfb-run -a -s '-screen 0 1280x800x24' python3 tests/gui-smoke.py
       - name: Сохранить скриншот теста

@@ -48,6 +48,7 @@ cryptsetup
 rsync
 parted
 mesa-vulkan-drivers
+wine
 wine64
 winbind
 pipewire
@@ -106,6 +107,16 @@ Icon=system-software-update
 Terminal=false
 Categories=System;Settings;
 EOF
+install -m 0755 "$GITHUB_WORKSPACE/desktop/nexora-win-exe" config/includes.chroot/usr/local/bin/nexora-win-exe
+install -m 0644 "$GITHUB_WORKSPACE/desktop/nexora-win-exe.desktop" config/includes.chroot/usr/share/applications/nexora-win-exe.desktop
+mkdir -p config/includes.chroot/etc/xdg config/includes.chroot/etc/skel/.config/autostart
+cat >config/includes.chroot/etc/xdg/mimeapps.list <<'EOF'
+[Default Applications]
+application/x-ms-dos-executable=nexora-win-exe.desktop
+application/x-msdownload=nexora-win-exe.desktop
+application/vnd.microsoft.portable-executable=nexora-win-exe.desktop
+EOF
+cp config/includes.chroot/usr/share/applications/nexora-center.desktop config/includes.chroot/etc/skel/.config/autostart/nexora-center.desktop
 cp config/includes.chroot/usr/share/applications/nexora-center.desktop config/includes.chroot/etc/skel/Desktop/nexora-center.desktop
 chmod 0755 config/includes.chroot/etc/skel/Desktop/nexora-center.desktop
 cat >config/includes.chroot/etc/apt/apt.conf.d/20auto-upgrades <<'EOF'

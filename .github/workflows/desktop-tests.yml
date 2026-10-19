@@ -1,0 +1,32 @@
+name: Nexora Desktop — GUI и проверки
+on:
+  push:
+    paths:
+      - 'desktop/**'
+      - 'tests/check-components.py'
+      - 'tests/gui-smoke.py'
+      - '.github/workflows/desktop-tests.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  gui:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Установить поддержку русской графики
+        run: |
+          sudo apt-get update
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y xvfb python3-tk python3-pil fonts-dejavu-core
+      - name: Проверить код и безопасный запуск
+        run: |
+          python3 tests/check-components.py
+          bash -n desktop/nexora-update
+      - name: Запуск интерфейса, темы и скриншот
+        run: xvfb-run -a -s '-screen 0 1280x800x24' python3 tests/gui-smoke.py
+      - name: Сохранить скриншот теста
+        uses: actions/upload-artifact@v4
+        with:
+          name: Nexora-Desktop-GUI-Test
+          path: artifacts/nexora-center-xvfb.png
+          if-no-files-found: error

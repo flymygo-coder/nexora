@@ -42,6 +42,14 @@ jobs:
           unsquashfs -ll /tmp/nexora-image/filesystem.squashfs | grep -F /usr/local/sbin/nexora-update
           unsquashfs -ll /tmp/nexora-image/filesystem.squashfs | grep -F /usr/bin/calamares
           unsquashfs -ll /tmp/nexora-image/filesystem.squashfs | grep -F /usr/bin/firefox-esr
+      # Preserve the completed image even when the separate boot smoke-test fails.
+      - name: Опубликовать собранный ISO и SHA256
+        uses: actions/upload-artifact@v4
+        with:
+          name: Nexora-OS-Installer-ISO
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 14
       - name: Проверка фактической загрузки Live ISO в QEMU
         run: python3 tests/boot-live.py dist/Nexora_OS_Installer_amd64.iso
       - name: Опубликовать диагностику загрузки
@@ -52,10 +60,3 @@ jobs:
           path: artifacts/live-boot/*
           if-no-files-found: warn
           retention-days: 14
-      - name: Опубликовать образ
-        uses: actions/upload-artifact@v4
-        with:
-          name: Nexora-OS-Installer-ISO
-          path: dist/*
-          if-no-files-found: error
-          retention-days: 7

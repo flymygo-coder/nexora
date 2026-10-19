@@ -14,7 +14,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Проверка скрипта
-        run: bash -n build/build-iso.sh
+        run: |
+          bash -n build/build-iso.sh
+          python3 tests/check-components.py
       - name: Сборка Live ISO Debian 13
         run: |
           docker run --rm --privileged -e GITHUB_WORKSPACE=/source -v "$PWD:/source" -w /source debian:trixie bash -euc '
@@ -25,11 +27,17 @@ jobs:
       - name: Проверка ISO
         run: |
           sudo apt-get update
-          sudo apt-get install -y xorriso
+          sudo apt-get install -y xorriso squashfs-tools qemu-system-x86 python3-pil
           test -s dist/Nexora_OS_Installer_amd64.iso
           (cd dist && sha256sum -c SHA256SUMS.txt)
-          xorriso -indev dist/Nexora_OS_Installer_amd64.iso -find /live -type f -print | tee /tmp/nexora-live-files.txt
+          xorriso -indev dist/Nexora_OS_Installer_amd64.iso -ls /live/ | tee /tmp/nexora-live-files.txt
           grep -F filesystem.squashfs /tmp/nexora-live-files.txt
+          mkdir -p /tmp/nexora-image
+          xorriso -osirrox on -indev dist/Nexora_OS_Installer_amd64.iso -extract /live/filesystem.squashfs /tmp/nexora-image/filesystem.squashfs
+          unsquashfs -ll /tmp/nexora-image/filesystem.squashfs | grep -F /usr/local/bin/nexora-center
+          unsquashfs -ll /tmp/nexora-image/filesystem.squashfs | grep -F /usr/local/sbin/nexora-update
+          unsquashfs -ll /tmp/nexora-image/filesystem.squashfs | grep -F /usr/bin/calamares
+          unsquashfs -ll /tmp/nexora-image/filesystem.squashfs | grep -F /usr/bin/firefox-esr
       - name: Опубликовать образ
         uses: actions/upload-artifact@v4
         with:

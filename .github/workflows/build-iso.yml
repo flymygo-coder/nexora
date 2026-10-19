@@ -43,6 +43,14 @@ jobs:
           unsquashfs -ll /tmp/nexora-image/filesystem.squashfs | grep -F /usr/bin/firefox-esr
       - name: Проверка фактической загрузки Live ISO в QEMU
         run: python3 tests/boot-live.py dist/Nexora_OS_Installer_amd64.iso
+      - name: Опубликовать диагностику загрузки
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Nexora-QEMU-Boot-Diagnostics
+          path: artifacts/live-boot/*
+          if-no-files-found: warn
+          retention-days: 14
       - name: Опубликовать образ
         uses: actions/upload-artifact@v4
         with:

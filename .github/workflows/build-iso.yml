@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/build-iso.yml'
       - 'build/**'
+      - 'tests/boot-live.py'
 concurrency:
   group: nexora-linux-iso-${{ github.ref }}
   cancel-in-progress: true

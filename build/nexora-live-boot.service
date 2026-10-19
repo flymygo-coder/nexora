@@ -1,0 +1,11 @@
+[Unit]
+Description=Nexora Live boot smoke-test marker
+After=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'if test -c /dev/ttyS0; then echo NEXORA_LIVE_BOOT_OK > /dev/ttyS0; fi'
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

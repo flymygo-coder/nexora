@@ -32,6 +32,9 @@ gnome-software-plugin-flatpak
 synaptic
 apt
 python3
+python3-tk
+unattended-upgrades
+zenity
 locales-all
 keyboard-configuration
 fonts-noto-core
@@ -72,6 +75,39 @@ Icon=drive-harddisk
 Terminal=false
 EOF
 chmod +x config/includes.chroot/etc/skel/Desktop/install-nexora.desktop
+# Nexora applications installed into the Live filesystem before package installation.
+mkdir -p config/includes.chroot/usr/local/bin config/includes.chroot/usr/local/sbin
+mkdir -p config/includes.chroot/usr/share/applications config/includes.chroot/etc/apt/apt.conf.d
+install -m 0755 "$GITHUB_WORKSPACE/desktop/nexora-center.py" config/includes.chroot/usr/local/bin/nexora-center
+install -m 0755 "$GITHUB_WORKSPACE/desktop/nexora-update" config/includes.chroot/usr/local/sbin/nexora-update
+cat >config/includes.chroot/usr/share/applications/nexora-center.desktop <<'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Nexora — центр системы
+Comment=Программы, офис, обновления и настройки
+Exec=/usr/local/bin/nexora-center
+Icon=preferences-system
+Terminal=false
+Categories=System;Settings;
+EOF
+cat >config/includes.chroot/usr/share/applications/nexora-update.desktop <<'EOF'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Nexora — обновление системы
+Comment=Проверка и установка обновлений
+Exec=xfce4-terminal --hold --command=/usr/local/sbin/nexora-update
+Icon=system-software-update
+Terminal=false
+Categories=System;Settings;
+EOF
+cp config/includes.chroot/usr/share/applications/nexora-center.desktop config/includes.chroot/etc/skel/Desktop/nexora-center.desktop
+chmod 0755 config/includes.chroot/etc/skel/Desktop/nexora-center.desktop
+cat >config/includes.chroot/etc/apt/apt.conf.d/20auto-upgrades <<'EOF'
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Unattended-Upgrade "1";
+EOF
 lb build
 iso="$(find . -maxdepth 1 -name '*.iso' -type f | head -1)"
 test -n "$iso" && test -s "$iso"

@@ -22,7 +22,7 @@ with tempfile.TemporaryDirectory() as tmp:
     def send(command):
         try:
             with socket.socket(socket.AF_UNIX,socket.SOCK_STREAM) as s:
-                s.settimeout(5);s.connect(str(monitor));s.recv(8192)
+                s.settimeout(2);s.connect(str(monitor))
                 s.sendall((command+"\n").encode())
             return True
         except (OSError,socket.timeout) as e:
@@ -30,7 +30,7 @@ with tempfile.TemporaryDirectory() as tmp:
     def shot(stem):
         ppm=out/(stem+".ppm")
         if send(f"screendump {ppm}"):
-            time.sleep(1)
+            time.sleep(2)
             if ppm.is_file():
                 im=Image.open(ppm).convert("RGB")
                 im.save(out/(stem+".png"))

@@ -1,0 +1,30 @@
+name: Очистка старых сборок Nexora ISO
+on:
+  push:
+    paths: ['.github/workflows/cancel-old-iso.yml']
+  workflow_dispatch:
+permissions:
+  actions: write
+  contents: read
+jobs:
+  cancel-outdated:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Отменить предыдущие сборки, оставив последнюю
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ids="$(gh api repos/${{ github.repository }}/actions/workflows/build-iso.yml/runs --paginate --jq '.workflow_runs[] | select(.status == "queued" or .status == "in_progress") | .id' | sort -n)"
+          if [[ -z "$ids" ]]; then
+            echo "Активных сборок нет"
+            exit 0
+          fi
+          latest="$(printf '%s\n' "$ids" | tail -1)"
+          echo "Сохраняем последнюю сборку $latest"
+          while read -r id; do
+            [[ -z "$id" || "$id" == "$latest" ]] && continue
+            gh api -X POST "repos/${{ github.repository }}/actions/runs/$id/cancel" >/dev/null 2>&1 || true
+            echo "Запрошена отмена $id"
+          done <<< "$ids"

@@ -75,6 +75,10 @@ Icon=drive-harddisk
 Terminal=false
 EOF
 chmod +x config/includes.chroot/etc/skel/Desktop/install-nexora.desktop
+# A one-time marker on COM1 is emitted only after the Live system reaches multi-user state.
+mkdir -p config/includes.chroot/etc/systemd/system/multi-user.target.wants
+install -m 0644 "$GITHUB_WORKSPACE/build/nexora-live-boot.service" config/includes.chroot/etc/systemd/system/nexora-live-boot.service
+ln -s ../nexora-live-boot.service config/includes.chroot/etc/systemd/system/multi-user.target.wants/nexora-live-boot.service
 # Nexora applications installed into the Live filesystem before package installation.
 mkdir -p config/includes.chroot/usr/local/bin config/includes.chroot/usr/local/sbin
 mkdir -p config/includes.chroot/usr/share/applications config/includes.chroot/etc/apt/apt.conf.d

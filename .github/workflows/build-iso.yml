@@ -3,8 +3,11 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - '.github/workflows/**'
+      - '.github/workflows/build-iso.yml'
       - 'build/**'
+concurrency:
+  group: nexora-linux-iso-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:

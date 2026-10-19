@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Launch Windows executables with the built-in Wine compatibility layer.
+# Wine is not a sandbox; confirm before executing untrusted code.
+set -euo pipefail
+if [[ $# -ne 1 || ! -f "$1" ]]; then
+  zenity --error --title="Nexora: запуск программы" --text="Не удалось найти файл программы."
+  exit 2
+fi
+target="$(realpath -e -- "$1")"
+if ! command -v wine >/dev/null 2>&1; then
+  zenity --error --title="Nexora: запуск программы" --text="Компонент совместимости Wine не установлен."
+  exit 3
+fi
+if ! zenity --question --title="Nexora: программа Windows" --ok-label="Запустить" --cancel-label="Отмена" --text="Этот файл Windows может изменять ваши данные. Wine не обеспечивает изоляцию от вредоносных программ. Запускать только доверенные файлы." ; then
+  exit 0
+fi
+exec wine start /unix "$target"

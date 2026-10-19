@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ "${EUID}" -ne 0 ]]; then
+    exec pkexec /usr/local/sbin/nexora-update
+fi
+printf '\nNEXORA — обновление системных пакетов Debian 13\n'
+printf 'Проверка официальных репозиториев...\n'
+apt-get update
+printf '\nУстановка доступных обновлений...\n'
+DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
+printf '\nОбновление пакетов завершено.\n'
+printf 'При обновлении ядра может потребоваться перезагрузка.\n'
